@@ -3,8 +3,6 @@ from logging.handlers import RotatingFileHandler
 from logging import handlers
 import sys
 import requests, json #For MSTR API ACCESS
-#import yaml 
-# YAML Intro https://stackabuse.com/reading-and-writing-yaml-to-a-file-in-python/
 import configparser
 import pandas
 
@@ -83,7 +81,7 @@ def login(base_url,api_login,api_password):
         print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
 
 #logout
-def logout(base_url,api_login,api_password):
+def logout(base_url):
     print("Logging out...")
     r = requests.post(base_url + 'auth/logout')
     if r.ok:
@@ -99,3 +97,43 @@ def set_headers(authToken,project_id):
                'Accept': 'application/json',
                'X-MSTR-ProjectID': project_id}
     return headers
+
+#Search (GET)
+def search_cube(base_url, authToken, cookies):
+    headers = set_headers(authToken,project_id)
+    print("Searching for Cube...")
+    r = requests.get(base_url + "searches/results?pattern=4&type=3&getAncestors=false&limit=-1&certifiedStatus=CERTIFIED_ONLY", headers=headers, cookies=cookies)
+    if r.ok:
+         print("\nCube FOUND successfully")
+         print("Cube ID:     " + r.json()['result']['id'])
+         cube_id = r.json()['result']['id']
+         return cube_id
+        # print("Cube Name:   " + r.json()['name'])
+        # print("HTTP Status Code: " + str(r.status_code) + "    ||    Error: " + str(r.raise_for_status()))
+        # print("Remember to copy and note down Cube ID (dataset ID). Enter this value in 'Parameters' section")
+        # return r.json()['id']
+    else:
+        print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
+
+
+log.info('Attempting to login and locate cube')
+try:
+  authToken, cookies = login(base_url,api_login,api_password)
+except:
+  log.error('Attempting to login and locate cube')
+  logout(base_url)
+
+
+##Search
+log.info('Authtoken received, getting cube info')
+try:
+    cubeid = search_cube(base_url, authToken, cookies)
+except:
+  log.error('Failed check URL')
+
+
+log.info('logging out')
+logout(base_url)
+
+
+
