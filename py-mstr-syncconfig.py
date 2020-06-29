@@ -6,6 +6,7 @@ import requests, json #For MSTR API ACCESS
 #import yaml 
 # YAML Intro https://stackabuse.com/reading-and-writing-yaml-to-a-file-in-python/
 import configparser
+import pandas
 
 
 #set logging level
@@ -35,7 +36,7 @@ log.addHandler(fh)
 log.info('reading config file')
 ##Read config files
 Config = configparser.ConfigParser()
-Config.read("config.ini")
+Config.read('config.ini')
 ConfigSections = Config.sections()
 
 print(ConfigSections)
@@ -54,12 +55,19 @@ def ConfigSectionMap(section):
     return dict1
 
 log.info('Checking section')
-#base_url = ConfigSectionMap("server")['serverid']
+serverid = ConfigSectionMap("server")['serverid']
+base_url='https://env-%s.customer.cloud.microstrategy.com/MicroStrategyLibrary/api/' % serverid
+log.info(base_url)
+log.info('Getting login and project details and converting to variables')
+api_login = ConfigSectionMap("server")['api_login']
+api_password = ConfigSectionMap("server")['api_password']
+project_id = ConfigSectionMap("server")['project_id']
 
 
 
 
 #### FUNCTIONS ###
+#login
 def login(base_url,api_login,api_password):
     print("Getting token...")
     data_get = {'username': api_login,
@@ -73,3 +81,21 @@ def login(base_url,api_login,api_password):
         return authToken, cookies
     else:
         print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
+
+#logout
+def logout(base_url,api_login,api_password):
+    print("Logging out...")
+    r = requests.post(base_url + 'auth/logout')
+    if r.ok:
+        log.info('Successfully logged out of %s' % base_url)
+    
+    else:
+        print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
+
+#headers
+def set_headers(authToken,project_id):
+    headers = {'X-MSTR-AuthToken': authToken,
+               'Content-Type': 'application/json',#IMPORTANT!
+               'Accept': 'application/json',
+               'X-MSTR-ProjectID': project_id}
+    return headers
