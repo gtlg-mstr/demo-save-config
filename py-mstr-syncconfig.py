@@ -2,6 +2,9 @@ import logging
 from logging.handlers import RotatingFileHandler
 from logging import handlers
 import sys
+import requests, json #For MSTR API ACCESS
+import yaml 
+
 
 #set logging level
 ## Use filename as variale
@@ -21,8 +24,9 @@ fh.setFormatter(format)
 log.addHandler(fh)
 
 # Logs test
-log.debug('A debug message')
-log.info('An info message')
-log.warning('Something is not right.')
-log.error('A Major error has happened.')
-log.critical('Fatal error. Cannot continue')
+# log.debug('A debug message')
+# log.info('An info message')
+# log.warning('Something is not right.')
+# log.error('A Major error has happened.')
+# log.critical('Fatal error. Cannot continue')
+
