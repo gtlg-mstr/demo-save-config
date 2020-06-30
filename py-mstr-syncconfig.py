@@ -99,15 +99,16 @@ def set_headers(authToken,project_id):
     return headers
 
 #Search (GET)
-def search_cube(base_url, authToken, cookies):
+def search_cube(base_url, authToken, cookies, project_id):
     headers = set_headers(authToken,project_id)
     print("Searching for Cube...")
     r = requests.get(base_url + "searches/results?pattern=4&type=3&getAncestors=false&limit=-1&certifiedStatus=CERTIFIED_ONLY", headers=headers, cookies=cookies)
     if r.ok:
          print("\nCube FOUND successfully")
-         print("Cube ID:     " + r.json()['result']['id'])
-         cube_id = r.json()['result']['id']
-         return cube_id
+         #print("Cube ID:     " + r.json()['result']['id'])
+         #cube_id = r.json()['result']['id']
+         #return cube_id
+        
         # print("Cube Name:   " + r.json()['name'])
         # print("HTTP Status Code: " + str(r.status_code) + "    ||    Error: " + str(r.raise_for_status()))
         # print("Remember to copy and note down Cube ID (dataset ID). Enter this value in 'Parameters' section")
@@ -127,7 +128,8 @@ except:
 ##Search
 log.info('Authtoken received, getting cube info')
 try:
-    cubeid = search_cube(base_url, authToken, cookies)
+    cubeid = search_cube(base_url, authToken, cookies, project_id)
+    print(cubeid)
 except:
   log.error('Failed check URL')
 
