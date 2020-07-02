@@ -133,8 +133,6 @@ def get_cubedef(base_url, authToken, cookies, project_id, cubeid):
 
 
 
-
-
 log.info('Attempting to login and locate cube')
 try:
   authToken, cookies = login(base_url,api_login,api_password)
@@ -173,22 +171,12 @@ try:
         log.info('Pushing cube defintion to pandas')
         df = pd.json_normalize(cubedefinition)
         print(df)
-        #log.info('Splitting df to attrib')
-        #dfattrib = pd.json_normalize(df['definition.availableObjects.attributes'])
-        #dfmetric = pd.json_normalize(cubedefinition['definition.availableObjects.metrics'])
-        #print(dfattrib)
-        #print(dfmetric)
+        df=df.to_csv(index=False)
+        print(df)
 except:
   log.error('Failed check URL')
 
 
 
-
-
-
-
 log.info('logging out')
 logout(base_url)
-
-
-
