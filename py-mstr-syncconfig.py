@@ -4,7 +4,7 @@ from logging import handlers
 import sys
 import requests, json #For MSTR API ACCESS
 import configparser
-import pandas
+import pandas as pd
 
 
 #set logging level
@@ -82,7 +82,6 @@ def login(base_url,api_login,api_password):
 
 #logout
 def logout(base_url):
-    print("Logging out...")
     r = requests.post(base_url + 'auth/logout')
     if r.ok:
         log.info('Successfully logged out of %s' % base_url)
@@ -105,6 +104,8 @@ def search_cube(base_url, authToken, cookies, project_id):
     r = requests.get(base_url + "searches/results?pattern=4&type=3&getAncestors=false&limit=-1&certifiedStatus=CERTIFIED_ONLY", headers=headers, cookies=cookies)
     if r.ok:
          print("\nCube FOUND successfully")
+         searchresults=r.json()
+         return searchresults
          #print("Cube ID:     " + r.json()['result']['id'])
          #cube_id = r.json()['result']['id']
          #return cube_id
@@ -115,6 +116,23 @@ def search_cube(base_url, authToken, cookies, project_id):
         # return r.json()['id']
     else:
         print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
+
+
+#https://env-218662.customer.cloud.microstrategy.com/MicroStrategyLibrary/api/v2/cubes/CC
+#Search (GET)
+def get_cubedef(base_url, authToken, cookies, project_id, cubeid):
+    headers = set_headers(authToken,project_id)
+    print("Searching for Cube...")
+    r = requests.get(base_url + "v2/cubes/" + cubeid, headers=headers, cookies=cookies)
+    if r.ok:
+         print("\nCube Defintion was retrieved successfully")
+         cubedefinition =r.json()
+         return cubedefinition
+    else:
+        print("HTTP %i - %s, Message %s" % (r.status_code, r.reason, r.text))
+
+
+
 
 
 log.info('Attempting to login and locate cube')
@@ -128,10 +146,45 @@ except:
 ##Search
 log.info('Authtoken received, getting cube info')
 try:
-    cubeid = search_cube(base_url, authToken, cookies, project_id)
-    print(cubeid)
+    searchresults = search_cube(base_url, authToken, cookies, project_id)
+    #print(searchresults)
+    log.info('Generating list of CERTIFIED Cubes')
+    df = pd.json_normalize(searchresults['result'])
+    #print(df)
+    df1 = df[['id']]  #df1 = df[['a','b']]
+    cubeidlist = df1.values.tolist()
+    print(cubeidlist)
+
 except:
   log.error('Failed check URL')
+
+
+
+##Get Definition
+log.info('Cube Information valid - getting definition')
+try:
+    for x in cubeidlist:
+        x=', '.join(x)
+        print(x)
+        cubeid=x
+
+        cubedefinition = get_cubedef(base_url, authToken, cookies, project_id, cubeid)
+        print(cubedefinition)
+        log.info('Pushing cube defintion to pandas')
+        df = pd.json_normalize(cubedefinition)
+        print(df)
+        #log.info('Splitting df to attrib')
+        #dfattrib = pd.json_normalize(df['definition.availableObjects.attributes'])
+        #dfmetric = pd.json_normalize(cubedefinition['definition.availableObjects.metrics'])
+        #print(dfattrib)
+        #print(dfmetric)
+except:
+  log.error('Failed check URL')
+
+
+
+
+
 
 
 log.info('logging out')
